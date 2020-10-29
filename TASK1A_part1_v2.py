@@ -48,6 +48,8 @@ shapespure = []
 ## readable and easy to understand.                         ##
 ##############################################################
 
+
+
 def detect_sides(box1,box2,box3,box4):
     
     
@@ -84,19 +86,14 @@ def detect_sides(box1,box2,box3,box4):
 def detect_quad(imfinal):
     corners = cv2.goodFeaturesToTrack(imfinal,4,0.01,10)
     corners = np.int0(corners)
-    for i in corners:
-        x,y = i.ravel()
-        cv2.circle(imfinal,(x,y),3,255,-1)
-
     bl,br,tr,tl = detect_sides(corners[0][0],corners[1][0],corners[2][0],corners[3][0])
-    
-    
-    
+
+
     hs1 = tr[0] - tl[0]
     vs1 = tr[1] - br[1]
     hs2 = br[0] - bl[0]
     vs2 = tl[1] - bl[1]
-    
+
     if tr[0]==tl[0] or tr[1]==tl[1]:
         sltop = 0
     elif tr[1]!=tl[1] and tr[0]!=tl[0]:
@@ -114,7 +111,7 @@ def detect_quad(imfinal):
     elif tl[0]!=bl[0] and tl[1]!=bl[1]:
         slleft = ((tl[1])-(bl[1]))/((tl[0])-(bl[0]))
 
-    
+
     d1 = ((((tl[0])-(br[0]))**2)+(((tl[1])-(br[1]))**2))**0.5 #left diagonal
     d2 = ((((tr[0])-(bl[0]))**2)+(((tr[1])-(bl[1]))**2))**0.5 #right diagonal
     if hs1>hs2-2 and hs1<hs2+2:
@@ -155,7 +152,7 @@ def detect_quad(imfinal):
             elif sltop!=slbot and slleft!=slright:
                 #print("quadrilateral")
                 shape = "Quadrilateral"
-            
+
 
     
 
@@ -178,12 +175,10 @@ def scan_image(img_file_path):
     ---
     this function takes file path of an image as an argument and returns dictionary
     containing details of colored (non-white) shapes in that image
-
     Input Arguments:
     ---
     `img_file_path` :		[ str ]
         file path of image
-
     Returns:
     ---
     `shapes` :              [ dictionary ]
@@ -202,17 +197,45 @@ def scan_image(img_file_path):
     shapes = {}
     img = cv2.imread(img_file_path)
     img_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    ret, thresh2 = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
+    kernel = np.ones((3,3),np.uint8)
+    v = np.median(img_gray)
+    sigma = 0.33
+    lower = int(max(0,(1.0-sigma)*v))
+    upper = int(min(255,(1.0+sigma)))
+    #thresh2 = cv2.erode(img_gray,kernel,iterations=1)
+    #thresh2 = cv2.dilate(img_gray,kernel,iterations=1)
+    
+    #img_gray = cv2.GaussianBlur(img_gray,(3,3),0)
+    
+    ret, thresh2 = cv2.threshold(img_gray,120,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    
+    #img_gray = cv2.medianBlur(img_gray,5)
+    #thresh2 = cv2.adaptiveThreshold(img_gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY_INV,5,2)
+    
+    
+    '''
+    opening = cv2.morphologyEx(thresh2,cv2.MORPH_OPEN,kernel,iterations=2)
+    sure_bg = cv2.dilate(opening,kernel,iterations=3)
+    dist_transform = cv2.distanceTransform(opening,cv2.DIST_L2,5)
+    ret,sure_fg = cv2.threshold(dist_transform,0.7*dist_transform.max(),255,0)
+    sure_fg = np.uint8(sure_fg)
+    thresh2 = cv2.subtract(sure_bg,sure_fg)
+    '''
+    
+    #thresh2 = cv2.Laplacian(img_gray,cv2.CV_64F)
     contours,_= cv2.findContours(thresh2.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-    font = cv2.FONT_HERSHEY_COMPLEX
+    
     for cnt in contours:
         approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
         cv2.drawContours(img,[approx],0,(0),5)
         x = approx.ravel()[0]
         y = approx.ravel()[1]
         M = cv2.moments(cnt)
-        cx = int(M["m10"]/M["m00"])
-        cy = int(M["m01"]/M["m00"])
+        if M["m00"]!=0:
+            cx = int(M["m10"]/M["m00"])
+            cy = int(M["m01"]/M["m00"])
+        elif M["m00"]==0:
+            cx,cy=0,0
         area = cv2.contourArea(cnt)
         (b,g,r) = img[cy,cx]
         if b>g and b>r:
@@ -237,7 +260,7 @@ def scan_image(img_file_path):
             vs1 = tr[1] - br[1]
             hs2 = br[0] - bl[0]
             vs2 = tl[1] - bl[1]
-            imfinal = quad_img_gray[bl[1]-20:bl[1]+max(vs2,vs1)+40,bl[0]-20:bl[0]+max(hs1,hs2)+40].copy()
+            imfinal = img_gray[bl[1]-20:bl[1]+max(vs2,vs1)+40,bl[0]-20:bl[0]+max(hs1,hs2)+40].copy()
             shape = detect_quad(imfinal)
             shapes[str(shape)]=[color,cx,cy,area]
             
@@ -253,9 +276,9 @@ def scan_image(img_file_path):
 
     
     
-	
+    
 
-	##################################################
+    ##################################################
     
     return shapes
 
