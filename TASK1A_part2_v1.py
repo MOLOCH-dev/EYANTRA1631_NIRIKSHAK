@@ -17,6 +17,13 @@
 *****************************************************************************************
 '''
 
+# Team ID:			[ Team-ID ]
+# Author List:		[ Names of team members worked on this file separated by Comma: Name1, Name2, ... ]
+# Filename:			task_1a_part1.py
+# Functions:		process_video
+# 					[ Comma separated list of functions in this file ]
+# Global variables:	frame_details
+# 					[ List of global variables defined in this file ]
 
 
 ####################### IMPORT MODULES #######################
@@ -50,16 +57,39 @@ frame_details = {}
 
 def process_video(vid_file_path, frame_list):
 
+	"""
+	Purpose:
+	---
+	this function takes file path of a video and list of frame numbers as arguments
+	and returns dictionary containing details of red color circle co-ordinates in the frame
 
+	Input Arguments:
+	---
+	`vid_file_path` :		[ str ]
+		file path of video
+	`frame_list` :			[ list ]
+		list of frame numbers
 
-    global frame_details
+	Returns:
+	---
+	`frame_details` :		[ dictionary ]
+		co-ordinate details of red colored circle present in selected frame(s) of video
+		{ frame_number : [cX, cY] }
 
-##############	ADD YOUR CODE HERE	##############
+	Example call:
+	---
+	frame_details = process_video(vid_file_path, frame_list)
+	"""
+
+	global frame_details
+
+	##############	ADD YOUR CODE HERE	##############
     capture = cv2.VideoCapture(vid_file_path)
     frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
     indexlist=[]
     imagelist = []
     for i in frame_list:
+        i=i-1
         if i==0:
             _, frame = capture.read()
             imagelist.append(frame)
@@ -102,7 +132,7 @@ def process_video(vid_file_path, frame_list):
                             cx,cy=0,0
 
 
-                frame_details[index]=[cx,cy]
+                frame_details[index+1]=[cx,cy]
             else:
                 index=index-1
                 img = imagelist[i]
@@ -133,14 +163,15 @@ def process_video(vid_file_path, frame_list):
                             cx,cy=0,0
 
 
-                frame_details[index]=[cx,cy]
+                frame_details[index+1]=[cx,cy]
 
 
+	
+	
 
+	##################################################
 
-    ##################################################
-
-    return frame_details
+	return frame_details
 
 
 # NOTE:	YOU ARE NOT ALLOWED TO MAKE ANY CHANGE TO THIS FUNCTION
@@ -154,81 +185,82 @@ def process_video(vid_file_path, frame_list):
 
 if __name__ == '__main__':
 
-    curr_dir_path = os.getcwd()
-    print('Currently working in '+ curr_dir_path)
+	curr_dir_path = os.getcwd()
+	print('Currently working in '+ curr_dir_path)
 
-    # path directory of videos in 'Videos' folder
-    vid_dir_path = curr_dir_path + '/Videos/'
-    
-    try:
-        file_count = len(os.listdir(vid_dir_path))
-    
-    except Exception:
-        print('\n[ERROR] "Videos" folder is not found in current directory.')
-        exit()
-    
-    print('\n============================================')
-    print('\nSelect the video to process from the options given below:')
-    print('\nFor processing ballmotion.m4v from Videos folder, enter \t=> 1')
-    print('\nFor processing ballmotionwhite.m4v from Videos folder, enter \t=> 2')
-    
-    choice = input('\n==> "1" or "2": ')
+	# path directory of videos in 'Videos' folder
+	vid_dir_path = curr_dir_path + '/Videos/'
+	
+	try:
+		file_count = len(os.listdir(vid_dir_path))
+	
+	except Exception:
+		print('\n[ERROR] "Videos" folder is not found in current directory.')
+		exit()
+	
+	print('\n============================================')
+	print('\nSelect the video to process from the options given below:')
+	print('\nFor processing ballmotion.m4v from Videos folder, enter \t=> 1')
+	print('\nFor processing ballmotionwhite.m4v from Videos folder, enter \t=> 2')
+	
+	choice = input('\n==> "1" or "2": ')
 
-    if choice == '1':
-        vid_name = 'ballmotion.m4v'
-        vid_file_path = vid_dir_path + vid_name
-        print('\n\tSelected video is: ballmotion.m4v')
-    
-    elif choice=='2':
-        vid_name = 'ballmotionwhite.m4v'
-        vid_file_path = vid_dir_path + vid_name
-        print('\n\tSelected video is: ballmotionwhite.m4v')
+	if choice == '1':
+		vid_name = 'ballmotion.m4v'
+		vid_file_path = vid_dir_path + vid_name
+		print('\n\tSelected video is: ballmotion.m4v')
+	
+	elif choice=='2':
+		vid_name = 'ballmotionwhite.m4v'
+		vid_file_path = vid_dir_path + vid_name
+		print('\n\tSelected video is: ballmotionwhite.m4v')
+	
+	else:
+		print('\n[ERROR] You did not select from available options!')
+		exit()
+	
+	print('\n============================================')
 
-    else:
-        print('\n[ERROR] You did not select from available options!')
-        exit()
+	if os.path.exists(vid_file_path):
+		print('\nFound ' + vid_name)
+	
+	else:
+		print('\n[ERROR] ' + vid_name + ' file is not found. Make sure "Videos" folders has the selected file.')
+		exit()
+	
+	print('\n============================================')
 
-    print('\n============================================')
+	print('\nEnter list of frame(s) you want to process, (between 1 and 404) (without space & separated by comma) (for example: 33,44,95)')
 
-    if os.path.exists(vid_file_path):
-        print('\nFound ' + vid_name)
+	frame_list = input('\nEnter list ==> ')
+	frame_list = list(frame_list.split(','))
 
-    else:
-        print('\n[ERROR] ' + vid_name + ' file is not found. Make sure "Videos" folders has the selected file.')
-        exit()
+	try:
+		for i in range(len(frame_list)):
+			frame_list[i] = int(frame_list[i])
+		print('\n\tSelected frame(s) is/are: ', frame_list)
+	
+	except Exception:
+		print('\n[ERROR] Enter list of frame(s) correctly')
+		exit()
+	
+	print('\n============================================')
 
-    print('\n============================================')
+	try:
+		print('\nRunning process_video function on', vid_name, 'for frame following frame(s):', frame_list)
+		frame_details = process_video(vid_file_path, frame_list)
 
-    print('\nEnter list of frame(s) you want to process, (between 1 and 404) (without space & separated by comma) (for example: 33,44,95)')
+		if type(frame_details) is dict:
+			print(frame_details)
+			print('\nOutput generated. Please verify')
+		
+		else:
+			print('\n[ERROR] process_video function returned a ' + str(type(frame_details)) + ' instead of a dictionary.\n')
+			exit()
+	
+	except Exception:
+		print('\n[ERROR] process_video function is throwing an error. Please debug process_video function')
+		exit()
 
-    frame_list = input('\nEnter list ==> ')
-    frame_list = list(frame_list.split(','))
+	print('\n============================================')
 
-    try:
-        for i in range(len(frame_list)):
-            frame_list[i] = int(frame_list[i])
-        print('\n\tSelected frame(s) is/are: ', frame_list)
-
-    except Exception:
-        print('\n[ERROR] Enter list of frame(s) correctly')
-        exit()
-
-    print('\n============================================')
-
-    try:
-        print('\nRunning process_video function on', vid_name, 'for frame following frame(s):', frame_list)
-        frame_details = process_video(vid_file_path, frame_list)
-
-        if type(frame_details) is dict:
-            print(frame_details)
-            print('\nOutput generated. Please verify')
-
-        else:
-            print('\n[ERROR] process_video function returned a ' + str(type(frame_details)) + ' instead of a dictionary.\n')
-            exit()
-
-    except Exception:
-        print('\n[ERROR] process_video function is throwing an error. Please debug process_video function')
-        exit()
-
-    print('\n============================================')
