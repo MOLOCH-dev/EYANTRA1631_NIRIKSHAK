@@ -1,3 +1,5 @@
+
+ 
 '''
 *****************************************************************************************
 *
@@ -64,12 +66,10 @@ def scan_image(img_file_path):
     ---
     this function takes file path of an image as an argument and returns dictionary
     containing details of colored (non-white) shapes in that image
-
     Input Arguments:
     ---
     `img_file_path` :		[ str ]
         file path of image
-
     Returns:
     ---
     `shapes` :              [ dictionary ]
@@ -88,8 +88,10 @@ def scan_image(img_file_path):
     shapes = {}
     img = cv2.imread(img_file_path)
     img_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    ret, thresh2 = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
-    contours,_= cv2.findContours(thresh2.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    #ret, thresh2 = cv2.threshold(img_gray,127,255,0,cv2.THRESH_BINARY_INV)
+    thresh = cv2.Canny(img_gray,80,160)
+    contours, hierarchy = cv2.findContours(thresh,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
     font = cv2.FONT_HERSHEY_COMPLEX
     for cnt in contours:
         approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
@@ -101,7 +103,7 @@ def scan_image(img_file_path):
         cy = int(M["m01"]/M["m00"])
         area = cv2.contourArea(cnt)
         (b,g,r) = img[cy,cx]
-        if b>g and b>r:
+        if b>g and b>r: 
             color = "blue"
         elif g>b and g>r:
             color = "green"
@@ -133,7 +135,7 @@ def scan_image(img_file_path):
             elif ar>1.05 and ar<1.5:
                 shapespure.append("Rectangle")
                 shapes["Rectangle"]=[color,area,cx,cy]
-                #print("rect")
+                #print("rect")tas
                 #cv2.putText(test_img_2_gray,"Rectangle",(x,y),font,1,(0))
             elif ar>1.4 and ar<1.5:
                 shapespure.append("Trapezium")
