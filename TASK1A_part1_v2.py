@@ -203,12 +203,14 @@ def scan_image(img_file_path):
     lower = int(max(0,(1.0-sigma)*v))
     upper = int(min(255,(1.0+sigma)))
     #thresh2 = cv2.erode(img_gray,kernel,iterations=1)
-    #thresh2 = cv2.dilate(img_gray,kernel,iterations=1)
+   
     
     #img_gray = cv2.GaussianBlur(img_gray,(3,3),0)
     
     ret, thresh2 = cv2.threshold(img_gray,120,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    thresh2 = cv2.dilate(thresh2,kernel,iterations=1)
     
+    #thresh2 = cv2.Canny(img_gray,80,160)
     #img_gray = cv2.medianBlur(img_gray,5)
     #thresh2 = cv2.adaptiveThreshold(img_gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY_INV,5,2)
     
@@ -223,11 +225,11 @@ def scan_image(img_file_path):
     '''
     
     #thresh2 = cv2.Laplacian(img_gray,cv2.CV_64F)
-    contours,_= cv2.findContours(thresh2.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-    
+    contours,_= cv2.findContours(thresh2.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
     for cnt in contours:
         approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
-        cv2.drawContours(img,[approx],0,(0),5)
+        
         x = approx.ravel()[0]
         y = approx.ravel()[1]
         M = cv2.moments(cnt)
@@ -236,7 +238,10 @@ def scan_image(img_file_path):
             cy = int(M["m01"]/M["m00"])
         elif M["m00"]==0:
             cx,cy=0,0
-        area = cv2.contourArea(cnt)
+        #area = cv2.contourArea(approx)
+        rx,ry,rw,rh = cv2.boundingRect(cnt)
+        roi = thresh2[ry:ry+rh-2,rx:rx+rw-2]
+        area = cv2.countNonZero(roi)
         (b,g,r) = img[cy,cx]
         if b>g and b>r:
             color = "blue"
@@ -262,7 +267,7 @@ def scan_image(img_file_path):
             vs2 = tl[1] - bl[1]
             imfinal = img_gray[bl[1]-20:bl[1]+max(vs2,vs1)+40,bl[0]-20:bl[0]+max(hs1,hs2)+40].copy()
             shape = detect_quad(imfinal)
-            shapes[str(shape)]=[color,cx,cy,area]
+            shapes[str(shape)]=[color,area,cx,cy]
             
         elif len(approx)==5:
             shapespure.append("Pentagon")
