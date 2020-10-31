@@ -18,10 +18,10 @@
 '''
 
 # Team ID:			[1631]
-# Author List:		[ Anushree Sabnis ]
+# Author List:		[ Anushree Sabnis, Saurabh Powar ]
 # Filename:			task_1a_part1.py
 # Functions:		scan_image
-# 					[ Comma separated list of functions in this file ]
+# 					[ detect_sides, detect_quad ]
 # Global variables:	shapes
 # 					[ List of global variables defined in this file ]
 
@@ -51,7 +51,7 @@ shapespure = []
 
 
 def detect_sides(box1,box2,box3,box4):
-    
+    #this functions calculates the length of 4 sides of a quadrilateral, given 4 vertices
     
     ylist = []
     box = [box1,box2,box3,box4]
@@ -59,24 +59,26 @@ def detect_sides(box1,box2,box3,box4):
     
     for i in box:
         
-        ylist.append(i[1])
+        ylist.append(i[1]) #taking y co-ords of 4 vertices
     
     ylist = np.array([ylist])
     
     
-    sort_indy = np.argsort(ylist)
+    sort_indy = np.argsort(ylist) #sorted y co-ords in ascending order
     sort_indy = sort_indy.ravel()
     
     
     if box[sort_indy[0]][0]>box[sort_indy[1]][0]:
-        br = box[sort_indy[0]]
-        bl = box[sort_indy[1]]
+        #comparing x-co-ords or the 2 minimum values of y
+        br = box[sort_indy[0]] #the vertex with greater x value becomes the bottom right vertex
+        bl = box[sort_indy[1]] #the vertex with smaller x value becomes the bottom left vertex
     elif box[sort_indy[0]][0]<box[sort_indy[1]][0]:
         br = box[sort_indy[1]]
         bl = box[sort_indy[0]]
     if box[sort_indy[2]][0]>box[sort_indy[3]][0]:
-        tr = box[sort_indy[2]]
-        tl = box[sort_indy[3]]
+        #comparing x-co-ords or the 2 maximum values of y
+        tr = box[sort_indy[2]] #the vertex with greater x value becomes the top right vertex
+        tl = box[sort_indy[3]] #the vertex with smaller x value becomes the top left vertex
     elif box[sort_indy[2]][0]<box[sort_indy[3]][0]:
         tr = box[sort_indy[3]]
         tl = box[sort_indy[2]]
@@ -84,18 +86,22 @@ def detect_sides(box1,box2,box3,box4):
 
 
 def detect_quad(imfinal):
+    #this function detects quadrialteral contained within roi of contour specified by minAreaRect
     corners = cv2.goodFeaturesToTrack(imfinal,4,0.01,10)
+    #detecting 4 strongest corners of the quadrilateral with param2=4
     corners = np.int0(corners)
+    #int0 is an alias for int64 or int32, useful for indexing
     bl,br,tr,tl = detect_sides(corners[0][0],corners[1][0],corners[2][0],corners[3][0])
+    #bl,br,tr,tl respectively represent bottom-left, bottom-right, top-right, and top-left vertices of quadrilateral
 
 
-    hs1 = tr[0] - tl[0]
-    vs1 = tr[1] - br[1]
-    hs2 = br[0] - bl[0]
-    vs2 = tl[1] - bl[1]
+    hs1 = tr[0] - tl[0] #the topmost horizontal side
+    vs1 = tr[1] - br[1] #the topmost vertical side
+    hs2 = br[0] - bl[0] #the bottom-most horizontal side
+    vs2 = tl[1] - bl[1] #the bottom-most vertical side
 
-    if tr[0]==tl[0] or tr[1]==tl[1]:
-        sltop = 0
+    if tr[0]==tl[0] or tr[1]==tl[1]: #if both x and y coords of top vertices are equal
+        sltop = 0 #slope is zero (infinite slope prevented)
     elif tr[1]!=tl[1] and tr[0]!=tl[0]:
         sltop = ((tr[1])-(tl[1]))/((tr[0])-(tl[0])) #top side
     if br[1]==bl[1] or br[0]==bl[0]:
@@ -114,44 +120,44 @@ def detect_quad(imfinal):
 
     d1 = ((((tl[0])-(br[0]))**2)+(((tl[1])-(br[1]))**2))**0.5 #left diagonal
     d2 = ((((tr[0])-(bl[0]))**2)+(((tr[1])-(bl[1]))**2))**0.5 #right diagonal
-    if hs1>hs2-2 and hs1<hs2+2:
+    if hs1>hs2-2 and hs1<hs2+2: #range of +/-1 given to allow for inaccuracies of cv2.goodFeaturesToTrack function
         if vs1>vs2-2 and vs1<vs2+2:
             if d1==d2:
                 if hs1<vs1+2 and hs1>vs1-2:
-                    #print("square")
-                    shape= "Square"
+                    
+                    shape= "Square" #all sides and diagonals equal
                 elif hs1!=vs1:
                     #print("parallelogram")
-                    shape = "Parallelogram"
+                    shape = "Parallelogram" #opposite sides and diagonals equal (every rectangle is a parallelogram)
             elif d1!=d2:
                 if hs1<vs1+2 and hs1>vs1-2:
                     #print("rhombus")
-                    shape = "Rhombus"
+                    shape = "Rhombus" #all sides equal, diagonals inequal
                 elif hs1!=vs1:
                     #print("parallelogram")
-                    shape = "Parallelogram"
+                    shape = "Parallelogram" #opposite sides equal, diagonals inequal
         elif vs1!=vs2:
             if sltop==slbot or slleft==slright:
                 #print("trapezium")
-                shape = "Trapezium"
+                shape = "Trapezium" #horizontal sides equal, atleast two opposite sides have equal slopes(isoceles trap.)
             elif sltop!=slbot and slleft!=slright:
                 #print("quadrilateral")
-                shape = "Quadrilateral"
+                shape = "Quadrilateral" #horizontal sides equal, varying slopes
     elif hs1!=hs2:
         if vs1!=vs2:
             if sltop==slbot or slleft==slright:
                 #print("trapezium")
-                shape = "trapezium"
+                shape = "trapezium" #no sides equal, atleast two opposite sides have equal slopes
             elif sltop!=slbot and slleft!=slright:
                 #print("quadrilateral")
-                shape = "Quadrilateral"
+                shape = "Quadrilateral" #no sides equal,varying slopes
         if vs1<vs2+2 and vs1>vs2-2:
             if sltop==slbot or slleft==slright:
                 #print("isoceles trapezium")
-                shape = "trapezium"
+                shape = "trapezium" #vertical sides equal, atleast two opposite sides have equal slopes(isoceles trap.)
             elif sltop!=slbot and slleft!=slright:
                 #print("quadrilateral")
-                shape = "Quadrilateral"
+                shape = "Quadrilateral" #vertical sides equal, varying slopes
 
 
     
@@ -197,38 +203,23 @@ def scan_image(img_file_path):
     shapes = {}
     img = cv2.imread(img_file_path)
     img_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    kernel = np.ones((3,3),np.uint8)
-    v = np.median(img_gray)
-    sigma = 0.33
-    lower = int(max(0,(1.0-sigma)*v))
-    upper = int(min(255,(1.0+sigma)))
-    #thresh2 = cv2.erode(img_gray,kernel,iterations=1)
-   
-    
-    #img_gray = cv2.GaussianBlur(img_gray,(3,3),0)
-    
-    ret, thresh2 = cv2.threshold(img_gray,120,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-    thresh2 = cv2.dilate(thresh2,kernel,iterations=1)
-    
-    #thresh2 = cv2.Canny(img_gray,80,160)
-    #img_gray = cv2.medianBlur(img_gray,5)
-    #thresh2 = cv2.adaptiveThreshold(img_gray,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY_INV,5,2)
     
     
-    '''
-    opening = cv2.morphologyEx(thresh2,cv2.MORPH_OPEN,kernel,iterations=2)
-    sure_bg = cv2.dilate(opening,kernel,iterations=3)
-    dist_transform = cv2.distanceTransform(opening,cv2.DIST_L2,5)
-    ret,sure_fg = cv2.threshold(dist_transform,0.7*dist_transform.max(),255,0)
-    sure_fg = np.uint8(sure_fg)
-    thresh2 = cv2.subtract(sure_bg,sure_fg)
-    '''
     
-    #thresh2 = cv2.Laplacian(img_gray,cv2.CV_64F)
-    contours,_= cv2.findContours(thresh2.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    
+    ret, thresh2 = cv2.threshold(img_gray,120,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU) #histogram based otsu thresholding
+    thresh2 = cv2.dilate(thresh2,kernel,iterations=1) #image dilation for recovering pixels excluded in thresholding
+    
+    
+    
+    
+    
+    
+    contours,_= cv2.findContours(thresh2.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE) #finding largest contour
+    contours = sorted(contours, key=cv2.contourArea, reverse=True) #sorting contours based on area
     for cnt in contours:
         approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
+        #approximates a polygon around the contour with minimum number of vertices
         
         x = approx.ravel()[0]
         y = approx.ravel()[1]
@@ -240,9 +231,9 @@ def scan_image(img_file_path):
             cx,cy=0,0
         #area = cv2.contourArea(approx)
         rx,ry,rw,rh = cv2.boundingRect(cnt)
-        roi = thresh2[ry:ry+rh-2,rx:rx+rw-2]
-        area = cv2.countNonZero(roi)
-        (b,g,r) = img[cy,cx]
+        roi = thresh2[ry:ry+rh-2,rx:rx+rw-2] #bounding rectangle of contour as roi
+        area = cv2.countNonZero(roi) #counting nonzero pixels in roi for accurate contour area
+        (b,g,r) = img[cy,cx] #opencv reads images as bgr
         if b>g and b>r:
             color = "blue"
         elif g>b and g>r:
@@ -256,17 +247,17 @@ def scan_image(img_file_path):
             
             
         elif len(approx)==4:
-            rect = cv2.minAreaRect(cnt)
+            rect = cv2.minAreaRect(cnt) #minAreaRect works when the shape is rotated, as well
             box = cv2.boxPoints(rect)
-            box = np.int0(box)
+            box = np.int0(box) #int0 is alias for np.int32 and np.int64, useful for indexing
 
-            bl,br,tr,tl = detect_sides(box[0],box[1],box[2],box[3])
+            bl,br,tr,tl = detect_sides(box[0],box[1],box[2],box[3]) #detecting four sides of min area rect
             hs1 = tr[0] - tl[0]
             vs1 = tr[1] - br[1]
             hs2 = br[0] - bl[0]
             vs2 = tl[1] - bl[1]
-            imfinal = img_gray[bl[1]-20:bl[1]+max(vs2,vs1)+40,bl[0]-20:bl[0]+max(hs1,hs2)+40].copy()
-            shape = detect_quad(imfinal)
+            imfinal = img_gray[bl[1]-20:bl[1]+max(vs2,vs1)+40,bl[0]-20:bl[0]+max(hs1,hs2)+40].copy() #roi of min area rect
+            shape = detect_quad(imfinal) 
             shapes[str(shape)]=[color,area,cx,cy]
             
         elif len(approx)==5:
