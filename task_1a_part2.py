@@ -84,102 +84,102 @@ def process_video(vid_file_path, frame_list):
 	global frame_details
 
 	##############	ADD YOUR CODE HERE	##############
-	framedet2 = {} #unsorted dictionary
-	capture = cv2.VideoCapture(vid_file_path)
-	frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT)) #total number of frames in saved video file
-	indexlist=[]
-	imagelist = []
-	for i in frame_list:
-	i=i-1
-	if i==0:
-	    _, frame = capture.read() #this reads the first frame
-	    imagelist.append(frame)
-	    indexlist.append(i)
+    framedet2 = {} #unsorted dictionary
+    capture = cv2.VideoCapture(vid_file_path)
+    frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT)) #total number of frames in saved video file
+    indexlist=[]
+    imagelist = []
+    for i in frame_list:
+        i=i-1
+        if i==0:
+            _, frame = capture.read() #this reads the first frame
+            imagelist.append(frame)
+            indexlist.append(i)
+            
+        elif i>0 and i<frame_count:
+            capture.set(cv2.CAP_PROP_POS_FRAMES,int(i)) #this sets capture to frame specified in framelist
+            _, frame = capture.read()
+            imagelist.append(frame)
+            indexlist.append(i)
+        
+        for i in range(len(indexlist)):
+            index = indexlist[i]
+            if index>0 and index<frame_count:
+                img = imagelist[i]
+                
+                lab = cv2.cvtColor(img,cv2.COLOR_BGR2LAB) 
+                #the LAB colourspace stands for Lightness,
+                #green to Magenta colour, blue to yellow colour 
+                b = lab[:,:,2]
+                #the red(ball) appears lighter than most of the background as
+                #it is unchanged in B component(red is extreme of A component of LAB)
+                ret,thresh = cv2.threshold(b,240,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+                #the ball becomes white
+                res = cv2.bitwise_xor(b,thresh) 
+                #the red ball appears darker due to XOR operation
+                #which outputs dark if both input pixels are light
+                ret, thresh2 = cv2.threshold(res,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU) 
+                #the ball becomes white with a less noisy background
 
-	elif i>0 and i<frame_count:
-	    capture.set(cv2.CAP_PROP_POS_FRAMES,int(i)) #this sets capture to frame specified in framelist
-	    _, frame = capture.read()
-	    imagelist.append(frame)
-	    indexlist.append(i)
+                thresh3 = cv2.bitwise_xor(b,thresh2) 
+                #the ball's red pixels appears as nearly the darkest pixels of the image
 
-	for i in range(len(indexlist)):
-	    index = indexlist[i]
-	    if index>0 and index<frame_count:
-		img = imagelist[i]
+                minval,maxval,minloc,maxloc = cv2.minMaxLoc(thresh3) #minVal represents the darkest intensity pixel
+                ret,thresh4 = cv2.threshold(thresh3,int(minval+29),255,cv2.THRESH_BINARY_INV) 
+                #the darkest pixels are turned to white while the rest are black,
+                #revealing an image with minimal noise
 
-		lab = cv2.cvtColor(img,cv2.COLOR_BGR2LAB) 
-		#the LAB colourspace stands for Lightness,
-		#green to Magenta colour, blue to yellow colour 
-		b = lab[:,:,2]
-		#the red(ball) appears lighter than most of the background as
-		#it is unchanged in B component(red is extreme of A component of LAB)
-		ret,thresh = cv2.threshold(b,240,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-		#the ball becomes white
-		res = cv2.bitwise_xor(b,thresh) 
-		#the red ball appears darker due to XOR operation
-		#which outputs dark if both input pixels are light
-		ret, thresh2 = cv2.threshold(res,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU) 
-		#the ball becomes white with a less noisy background
+                contours,_= cv2.findContours(thresh4.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+                for cnt in contours:
+                    #approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
+                    M = cv2.moments(cnt)
 
-		thresh3 = cv2.bitwise_xor(b,thresh2) 
-		#the ball's red pixels appears as nearly the darkest pixels of the image
+                    area = cv2.contourArea(cnt)
+                    if area>6000:
 
-		minval,maxval,minloc,maxloc = cv2.minMaxLoc(thresh3) #minVal represents the darkest intensity pixel
-		ret,thresh4 = cv2.threshold(thresh3,int(minval+29),255,cv2.THRESH_BINARY_INV) 
-		#the darkest pixels are turned to white while the rest are black,
-		#revealing an image with minimal noise
-
-		contours,_= cv2.findContours(thresh4.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-		for cnt in contours:
-		    #approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
-		    M = cv2.moments(cnt)
-
-		    area = cv2.contourArea(cnt)
-		    if area>6000:
-
-			if M["m00"]!=0:
-			    cx = int(M["m10"]/M["m00"])
-			    cy = int(M["m01"]/M["m00"])
-			elif M["m00"]==0:
-			    cx,cy=0,0
-
-
-		framedet2[index+1]=[cx,cy]
-	    else:
-		index=index-1
-		img = imagelist[i]
-		index = i
-		lab = cv2.cvtColor(img,cv2.COLOR_BGR2LAB)
-		b = lab[:,:,2]
-		ret,thresh = cv2.threshold(b,240,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-		res = cv2.bitwise_xor(b,thresh)
-		ret, thresh2 = cv2.threshold(res,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-
-		thresh3 = cv2.bitwise_xor(b,thresh2)
-
-		minval,maxval,minloc,maxloc = cv2.minMaxLoc(thresh3)
-		ret,thresh4 = cv2.threshold(thresh3,int(minval+29),255,cv2.THRESH_BINARY_INV)
-
-		contours,_= cv2.findContours(thresh4.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-		for cnt in contours:
-		    #approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
-		    M = cv2.moments(cnt)
-
-		    area = cv2.contourArea(cnt)
-		    if area>6000:
-
-			if M["m00"]!=0:
-			    cx = int(M["m10"]/M["m00"])
-			    cy = int(M["m01"]/M["m00"])
-			elif M["m00"]==0:
-			    cx,cy=0,0
+                        if M["m00"]!=0:
+                            cx = int(M["m10"]/M["m00"])
+                            cy = int(M["m01"]/M["m00"])
+                        elif M["m00"]==0:
+                            cx,cy=0,0
 
 
-		framedet2[index+1]=[cx,cy]
+                framedet2[index+1]=[cx,cy]
+            else:
+                index=index-1
+                img = imagelist[i]
+                index = i
+                lab = cv2.cvtColor(img,cv2.COLOR_BGR2LAB)
+                b = lab[:,:,2]
+                ret,thresh = cv2.threshold(b,240,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+                res = cv2.bitwise_xor(b,thresh)
+                ret, thresh2 = cv2.threshold(res,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
-	keys = sorted(framedet2) #implemented dictionary sorting as it has a lesser time complexity than list sorting
-	for i in range(len(keys)):
-	frame_details[keys[i]] = framedet2[keys[i]] #values are printed according to new keys
+                thresh3 = cv2.bitwise_xor(b,thresh2)
+
+                minval,maxval,minloc,maxloc = cv2.minMaxLoc(thresh3)
+                ret,thresh4 = cv2.threshold(thresh3,int(minval+29),255,cv2.THRESH_BINARY_INV)
+
+                contours,_= cv2.findContours(thresh4.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+                for cnt in contours:
+                    #approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
+                    M = cv2.moments(cnt)
+
+                    area = cv2.contourArea(cnt)
+                    if area>6000:
+
+                        if M["m00"]!=0:
+                            cx = int(M["m10"]/M["m00"])
+                            cy = int(M["m01"]/M["m00"])
+                        elif M["m00"]==0:
+                            cx,cy=0,0
+
+
+                framedet2[index+1]=[cx,cy]
+
+    keys = sorted(framedet2) #implemented dictionary sorting as it has a lesser time complexity than list sorting
+    for i in range(len(keys)):
+        frame_details[keys[i]] = framedet2[keys[i]] #values are printed according to new keys
 
 
 	
