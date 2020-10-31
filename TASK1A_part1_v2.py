@@ -18,7 +18,7 @@
 '''
 
 # Team ID:			[1631]
-# Author List:		[ Anushree Sabnis ]
+# Author List:		[ Anushree Sabnis, Saurabh Powar ]
 # Filename:			task_1a_part1.py
 # Functions:		scan_image
 # 					[ detect_sides, detect_quad ]
