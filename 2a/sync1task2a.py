@@ -167,6 +167,8 @@ def start_simulation():
         #return_code = simxStartSimulation(client_id,simx_opmode_oneshot);
         #simx_opmode_oneshot is a non-blocking function call
         return_code = simxStartSimulation(client_id,simx_opmode_blocking);
+     
+    ping_time = sim.simxGetPingTime(client_id)
     
         
         
