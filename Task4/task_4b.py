@@ -508,14 +508,14 @@ def convert_path_to_pixels(path):
 		for i in range(len(path)):
 			if path[i][1]==0:
 
-				x = 60
+				x = 80
 			else:
-				x = (126*(path[i][1])+60)
+				x = (127*(path[i][1])+60)
 			if path[i][0]==0:
 
-				y = 60
+				y = 80
 			else:
-				y = (126*(path[i][0])+60)
+				y = (127*(path[i][0])+60)
 			pixel_path.append((x,y))
 	print(pixel_path)
 	print(len(pixel_path),'len')
@@ -560,33 +560,26 @@ def traverse_path(pixel_path):
 	##############	ADD YOUR CODE HERE	##############
 	global setpoint, center_x, center_y
 	i=1
-	for i in range(len(pixel_path)-1):
-		i=i+1
+	for i in range(len(pixel_path)):
 		
 		print(i,'i')
-		#center_x, center_y =  pixel_path[i][0],pixel_path[i][1]
 		print(pixel_path[i])
-		#task_3.change_setpoint(pixel_path[i])
 		set_x = pixel_path[i][0]
 		set_y = pixel_path[i][1]
 		center_x,center_y = get_ball_coords()
 		print(center_x, center_y, "cxy")
 		print(set_x,set_y,'sxy')
 		
-	# Storing time when the simulation started in variable init_simulation_time
 		
-	# Running the coppeliasim simulation for 15 seconds
 		
 		while np.abs(center_x-set_x)>50 or np.abs(center_y-set_y)>50:
-			#return_code_signal,curr_simulation_time_string=sim.simxGetStringSignal(client_id,'time',sim.simx_opmode_buffer)
 
 			
 			print(set_x,set_y,center_x,center_y,'scxy')
 			center_x,center_y = get_ball_coords()
-			#mode = 'auto'
-			task_3.control_logic(center_x,center_y,set_x,set_y)
 			
-			#center_x,center_y = get_ball_coords()
+			task_3.control_logic(center_x,center_y,set_x,set_y)
+
 
 
 

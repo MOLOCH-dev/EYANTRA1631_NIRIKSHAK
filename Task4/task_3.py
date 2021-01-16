@@ -64,7 +64,7 @@ vision_sensor_handle = 0
 
 # You can add your global variables here
 ##############################################################
-global pex,pey,errxsum,errysum,psx,psy,pogx,pogy,pcx,pcy,ppcx,ppcy
+global pex,pey,errxsum,errysum,psx,psy,pogx,pogy,pcx,pcy,ppcx,ppcy,s
 pex=0
 pey=0
 errxsum=0
@@ -77,6 +77,7 @@ pcx=0
 pcy=0
 ppcx=0
 ppcy=0
+s=0
 ##############################################################
 
 ################# ADD UTILITY FUNCTIONS HERE #################
@@ -92,7 +93,7 @@ def constrain(angle):
 	global modex,modey
 	#if np.abs([axis])>30:
 
-	ang = 45*np.pi/180
+	ang = 60*np.pi/180
 
 	if angle>=ang:
 		angle =ang
@@ -231,8 +232,7 @@ def control_logic(center_x,center_y,set_x,set_y):
 	control_logic(center_x,center_y)
 
 	"""
-	global setpoint,pogx,pogy,modex,modey, client_id, handle_arr,trigger,pex,pey, errxsum,errysum,ogx,ogy, psx,psy,pcx,pcy,ppcx,ppcy
-
+	global setpoint,pogx,pogy,modex,modey,client_id, handle_arr,trigger,pex,pey, errxsum,errysum,ogx,ogy, psx,psy,pcx,pcy,s
 	##############	ADD YOUR CODE HERE	##############
 
 
@@ -240,16 +240,17 @@ def control_logic(center_x,center_y,set_x,set_y):
 	ogx=error_x
 	error_y = set_y - center_y
 	ogy=error_y
-	ang = 45*np.pi/180
-	error_x = pmap(error_x,-1280+set_x,1280-set_x,-ang,ang)
+	ang = 60*np.pi/180
+	error_x = pmap(error_x,-1260,1260,-800,800)
+	error_x = pmap(error_x,-1260,1260,-ang,ang)
+	error_y = pmap(error_y,-1260,1260,-800,800)
+	error_y = pmap(error_y,-1260,1260,-ang,ang)
 
-	error_y = pmap(error_y,-1280+set_y,1280-set_y,-ang,ang)
-
-	Kpx1=2 #3
+	Kpx1=2.5 #3
 	Kpx2=0 #6.5 #3.23 5x 4-4ex234,9,600.0015
-	Kdx1=0.02 #40.25 ,150,347,500, 0.005, 0.004
+	Kdx1=0.01 #40.25 ,150,347,500, 0.005, 0.004
 	Kdx2 = 0.0 #0.045 3(1),0.01(2) - good response ,0.010, 0.015
-	Kpy1=2
+	Kpy1=2.5
 	Kpy2=0 #5.5,60,0.0015
 	Kix1=0.0 #5
 	Kix2 = 0.0 #0.05
@@ -269,18 +270,26 @@ def control_logic(center_x,center_y,set_x,set_y):
 	if psx!=None:
 		if psx!=set_x:
 			print('yup')
-			modex = 'auto'
-
+			#dinputx =  -(set_x - psx - dinputx)
+			print(dinputx,'psx')
 
 		if psy!=set_y:
 			print('yup2')
-			modey = 'auto'
+			#dinputy = -(set_y - psy - dinputy)
+			print(dinputy,'psy')
+
 	
 
 	if pogx is None:
-		PIDx = Kpx*error_x
+		PIDx = Kpx1*error_x*0.1
 
-		PIDy = Kpy*error_y
+		PIDy = Kpy1*error_y*0.1
+		s=s+1
+	if s<5:
+		PIDx = Kpx1*error_x*0.1
+
+		PIDy = Kpy1*error_y*0.1
+		s=s+1
 	elif pogx is not None:
 		PIDx = Kpx1*error_x - Kdx1*(dinputx) +Kix1*(errxsum)
 		PIDy = Kpy1*error_y - Kdy1*(dinputy)+Kiy1*(errysum)
@@ -292,10 +301,9 @@ def control_logic(center_x,center_y,set_x,set_y):
 	PIDy=constrain(PIDy)
 	
 
-	if np.abs([PIDx])>np.abs([PIDy]):
+	if np.abs([error_x])>np.abs([error_y]):
 		targets = [PIDx,-PIDx,-PIDx,PIDx]
 		print('x')
-
 	else:
 		targets = [PIDy,PIDy,-PIDy,-PIDy]
 		print('y')
@@ -329,8 +337,6 @@ def control_logic(center_x,center_y,set_x,set_y):
 	psy = set_y
 	pogx = ogx
 	pogy = ogy
-	ppcx=pcx
-	ppcy=pcy
 	pcx = center_x
 	pcy = center_y
 	
