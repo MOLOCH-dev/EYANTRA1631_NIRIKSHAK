@@ -295,9 +295,7 @@ def control_logic(center_x,center_y,set_x,set_y):
 	if np.abs([PIDx])>np.abs([PIDy]):
 		targets = [PIDx,-PIDx,-PIDx,PIDx]
 		print('x')
-	elif np.abs([PIDy])>np.abs([PIDx]):
-		targets = [PIDy,PIDy,-PIDy,-PIDy]
-		print('y')
+
 	else:
 		targets = [PIDy,PIDy,-PIDy,-PIDy]
 		print('y')
