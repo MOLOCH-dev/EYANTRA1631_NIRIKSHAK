@@ -246,11 +246,11 @@ def control_logic(center_x,center_y,set_x,set_y):
 	error_y = pmap(error_y,-1260,1260,-800,800)
 	error_y = pmap(error_y,-1260,1260,-ang,ang)
 
-	Kpx1=2.5 #3
+	Kpx1=2.2 #3
 	Kpx2=0 #6.5 #3.23 5x 4-4ex234,9,600.0015
 	Kdx1=0.01 #40.25 ,150,347,500, 0.005, 0.004
 	Kdx2 = 0.0 #0.045 3(1),0.01(2) - good response ,0.010, 0.015
-	Kpy1=2.5
+	Kpy1=2.2
 	Kpy2=0 #5.5,60,0.0015
 	Kix1=0.0 #5
 	Kix2 = 0.0 #0.05
@@ -301,7 +301,7 @@ def control_logic(center_x,center_y,set_x,set_y):
 	PIDy=constrain(PIDy)
 	
 
-	if np.abs([error_x])>np.abs([error_y]):
+	if np.abs([PIDx])>np.abs([PIDy]):
 		targets = [PIDx,-PIDx,-PIDx,PIDx]
 		print('x')
 	else:

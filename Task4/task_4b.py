@@ -572,7 +572,7 @@ def traverse_path(pixel_path):
 		
 		
 		
-		while np.abs(center_x-set_x)>50 or np.abs(center_y-set_y)>50:
+		while np.abs(center_x-set_x)>30 or np.abs(center_y-set_y)>30:
 
 			
 			print(set_x,set_y,center_x,center_y,'scxy')
