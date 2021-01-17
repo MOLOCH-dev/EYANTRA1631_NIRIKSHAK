@@ -64,7 +64,7 @@ vision_sensor_handle = 0
 
 # You can add your global variables here
 ##############################################################
-global pex,pey,errxsum,errysum,psx,psy,pogx,pogy,pcx,pcy,ppcx,ppcy,s
+global pex,pey,errxsum,errysum,psx,psy,pogx,pogy,pcx,pcy,ppcx,ppcy
 pex=0
 pey=0
 errxsum=0
@@ -77,7 +77,6 @@ pcx=0
 pcy=0
 ppcx=0
 ppcy=0
-s=0
 ##############################################################
 
 ################# ADD UTILITY FUNCTIONS HERE #################
@@ -86,69 +85,60 @@ s=0
 ## readable and easy to understand.							##
 ##############################################################
 def send_handles():
+	print('send_handeles called')
 	global vision_sensor_handle
 	return vision_sensor_handle
 
-def constrain(angle):
+def constrain(angle,axis,var):
+	print('constrain called')
 	global modex,modey
-	#if np.abs([axis])>30:
+	if np.abs([axis])>30:
 
-	ang = 60*np.pi/180
-
-	if angle>=ang:
-		angle =ang
+		if angle>=45*np.pi/180:
+			angle =45*np.pi/180
 
 
-	elif angle<=-ang:
-		angle = -ang
-
-
+		elif angle<=-45*np.pi/180:
+			angle = -45*np.pi/180
+	elif np.abs([axis])<=30:
+		if var=='x':
+			modex = 'manual'
+		elif var=='y':
+			modey = 'manual'
+		#print(modex,modey)
 	return angle
 
 def pmap(value,in_min,in_max,out_min,out_max):
+	print('pmap called')
 	return ((value - in_min) * ((out_max - out_min) / (in_max - in_min))) + out_min
-
-
 
 ##############################################################
 def control_servo(targets):
+	print('control_servo called')
 	global posarray
 
-	#returnarray = [-1,-1,-1,-1]
 	_=sim.simxSetJointTargetPosition(client_id,handle_arr[0],targets[0],sim.simx_opmode_oneshot)
 
 	_=sim.simxSetJointTargetPosition(client_id,handle_arr[1],targets[1],sim.simx_opmode_oneshot)
 
-	_=sim.simxSetJointTargetPosition(client_id,handle_arr[2],targets[2],sim.simx_opmode_oneshot)
+	#_=sim.simxSetJointTargetPosition(client_id,handle_arr[2],targets[2],sim.simx_opmode_oneshot)
 
-	_=sim.simxSetJointTargetPosition(client_id,handle_arr[3],targets[3],sim.simx_opmode_oneshot)
+	#_=sim.simxSetJointTargetPosition(client_id,handle_arr[3],targets[3],sim.simx_opmode_oneshot)
 
 def controlx(targets):
+	print("controlx called")
 	global posarray
-
-	#returnarray = [-1,-1,-1,-1]
-
 	_=sim.simxSetJointTargetPosition(client_id,handle_arr[1],targets[0],sim.simx_opmode_oneshot)
 
-
-	_=sim.simxSetJointTargetPosition(client_id,handle_arr[3],targets[1],sim.simx_opmode_oneshot)
-
-
 def controly(targets):
+	print('controly called')
 	global posarray
 
-	#returnarray = [-1,-1,-1,-1]
 	_=sim.simxSetJointTargetPosition(client_id,handle_arr[0],targets[0],sim.simx_opmode_oneshot)
 
 
-	_=sim.simxSetJointTargetPosition(client_id,handle_arr[2],targets[1],sim.simx_opmode_oneshot)
-
-
-
-
-
-
 def init_setup(rec_client_id):
+	print('init_step called')
 	"""
 	Purpose:
 	---
@@ -172,7 +162,7 @@ def init_setup(rec_client_id):
 	init_setup()
 
 	"""
-	global client_id, vision_sensor_handle, handle_arr,return_code,image_resolution,vision_sensor_image
+	global client_id, vision_sensor_handle, handle_arr,trigger,return_code,image_resolution,vision_sensor_image
 
 	# since client_id is defined in task_2a.py file, it needs to be assigned here as well.
 	client_id = rec_client_id
@@ -186,12 +176,13 @@ def init_setup(rec_client_id):
 	errorcode, rev3 = sim.simxGetObjectHandle(client_id,"revolute_joint_ss_3",sim.simx_opmode_blocking)
 	errorcode, rev4 = sim.simxGetObjectHandle(client_id,"revolute_joint_ss_4",sim.simx_opmode_blocking)
 	handle_arr = [rev1,rev2,rev3,rev4]
-
+	trigger=0
 
 	##################################################
 
 
 def control_logic(center_x,center_y,set_x,set_y):
+	print("control_logic called")
 	"""
 	Purpose:
 	---
@@ -232,117 +223,139 @@ def control_logic(center_x,center_y,set_x,set_y):
 	control_logic(center_x,center_y)
 
 	"""
-	global setpoint,pogx,pogy,modex,modey,client_id, handle_arr,trigger,pex,pey, errxsum,errysum,ogx,ogy, psx,psy,pcx,pcy,s
-	##############	ADD YOUR CODE HERE	##############
+	global setpoint,pogx,pogy,modex,modey, client_id, handle_arr,trigger,pex,pey, errxsum,errysum,ogx,ogy, psx,psy,pcx,pcy,ppcx,ppcy
 
+	##############	ADD YOUR CODE HERE	##############
+	#set_x = setpoint[0]
+	#set_y = setpoint[1]
+	#print("xysc",set_x,center_x,set_y,center_y)
+
+	print('setx is :',set_x)
+	print('sety is :',set_y)
 
 	error_x = set_x - center_x
 	ogx=error_x
+
 	error_y = set_y - center_y
 	ogy=error_y
-	ang = 60*np.pi/180
+
+	ang=45*np.pi/180
+
+	#pmaps line:111 /it converts the error in angle form
+	#error_x = pmap(error_x,-1280+set_x,1280-set_x,-1,1)
 	error_x = pmap(error_x,-1260,1260,-800,800)
 	error_x = pmap(error_x,-1260,1260,-ang,ang)
+
+	#error_y = pmap(error_y,-1280+set_y,1280-set_y,-1,1)
 	error_y = pmap(error_y,-1260,1260,-800,800)
 	error_y = pmap(error_y,-1260,1260,-ang,ang)
 
-	Kpx1=2.2 #3
-	Kpx2=0 #6.5 #3.23 5x 4-4ex234,9,600.0015
-	Kdx1=0.01 #40.25 ,150,347,500, 0.005, 0.004
-	Kdx2 = 0.0 #0.045 3(1),0.01(2) - good response ,0.010, 0.015
-	Kpy1=2.2
-	Kpy2=0 #5.5,60,0.0015
-	Kix1=0.0 #5
-	Kix2 = 0.0 #0.05
-	Kdy1=0.01
-	Kdy2 = 0.0 #30 x35,55-4,347
-	Kiy1 =0.0
-	Kiy2 = 0.0
+  #kpx1 kpy1 
+	#x terms:
+	Kpx1=5 #3 #4.5
+	Kdx1=0
+	Kix1=0
 
-	errxsum = errxsum+(Kix2*error_x)
-	errysum=errysum+(Kiy2*error_y)
+	#y terms
+	Kpy1=20
+	Kdy1=0.0#0.023
+	Kiy1 =0
 
-	dinputx = center_x-pcx
-	dinputy = center_y-pcy
+
+	#Kpx2=0 
+	#Kdx2 = 0 
+	#Kpy2=0 
+	#Kix2 = 0 #used in errxsum
+	#Kdy2 = 0 
+	#Kiy2 = 0  #used in errysum
+
+
+	errxsum =  errxsum + (Kix1*error_x)
+	errysum =  errysum + (Kiy1*error_y)
+
+	dinputx = center_x - pcx
+	dinputy = center_y - pcy
+
 	modex = 'auto'
 	modey = 'auto'
-	#	print('not yet')
-	if psx!=None:
-		if psx!=set_x:
-			print('yup')
-			#dinputx =  -(set_x - psx - dinputx)
-			print(dinputx,'psx')
-
-		if psy!=set_y:
-			print('yup2')
-			#dinputy = -(set_y - psy - dinputy)
-			print(dinputy,'psy')
-
-	
-
-	if pogx is None:
-		PIDx = Kpx1*error_x*0.1
-
-		PIDy = Kpy1*error_y*0.1
-		s=s+1
-	if s<5:
-		PIDx = Kpx1*error_x*0.1
-
-		PIDy = Kpy1*error_y*0.1
-		s=s+1
-	elif pogx is not None:
-		PIDx = Kpx1*error_x - Kdx1*(dinputx) +Kix1*(errxsum)
-		PIDy = Kpy1*error_y - Kdy1*(dinputy)+Kiy1*(errysum)
-
-
-
-	
-	PIDx = constrain(PIDx)
-	PIDy=constrain(PIDy)
-	
-
-	if np.abs([PIDx])>np.abs([PIDy]):
-		targets = [PIDx,-PIDx,-PIDx,PIDx]
-		print('x')
-	else:
-		targets = [PIDy,PIDy,-PIDy,-PIDy]
-		print('y')
-
-	
-	
 
 	if psx!=None:
 		if psx!=set_x:
-			print('yup')
 			modex = 'auto'
 
+		if psy!=set_y:
+			modey = 'auto'
+
+	if pogx is None:
+		PIDx1 = Kpx1*error_x
+		PIDy1 = Kpy1*error_y
+
+	elif pogx is not None:
+		PIDx1 = Kpx1*error_x - Kdx1*(dinputx) +Kix1*(errxsum)
+		#PIDx2 = Kpx2*error_x - Kdx2*(dinputx) +Kix2*(errxsum)
+		PIDy1 = Kpy1*error_y - Kdy1*(dinputy)+Kiy1*(errysum)
+		#PIDy2 = Kpy2*error_y - Kdy2*(dinputy)+Kiy2*(errysum)
+
+	PIDx1 = constrain(PIDx1,ogx,'x')
+	#PIDx2 = constrain(PIDx2,ogx,'x')
+	print('pidx1 is ::: ',PIDx1)
+	PIDy1=constrain(PIDy1,ogy,'y')
+	print('pidy1 is ::: ',PIDy1)
+	#PIDy2=constrain(PIDy2,ogy,'y')
+
+	#targets = [PIDy1,-PIDx1,-PIDy2,PIDx2]
+	targets = [PIDy1,-PIDx1]
+
+	'''if np.abs([Kpy1*error_y - Kdy1*(dinputy)])>np.abs([Kdy2*(dinputy)]):
+		if np.abs([Kpy1*error_y - Kdy1*(dinputy)])>np.abs([Kiy2*(errysum)]):
+			#print("Kpy")
+			pass
+		else:
+			pass
+			#print("Kiy")
+	else:
+		pass
+		#print("Kdy")
+	if np.abs([Kpx1*error_x - Kdx1*(dinputx)])>np.abs([Kdx2*(dinputx)]):
+		if np.abs([Kpx1*error_x - Kdx1*(dinputx)])>np.abs([Kix2*(errxsum)]):
+			#print("Kpx")
+			pass
+		else:
+			pass
+			#print("Kix")
+	else:
+		pass'''
+
+	print('modex is : ',modex)
+	if psx!=None:
+		if psx!=set_x:
+			modex = 'auto'
 
 		if psy!=set_y:
-			print('yup2')
 			modey = 'auto'
 
 	if modex!='manual' and modey!='manual':
 		control_servo(targets)
 	elif modex!='manual' and modey=='manual':
-		targets = [-PIDx1,PIDx2]
+		targets = [-PIDx1]
 		controlx(targets)
 	elif modey!='manual' and modex=='manual':
-		targets = [PIDy1,-PIDy2]
+		targets = [PIDy1]
 		controly(targets)
-	print(modex,modey)
-	print(targets)
+
 	pex=error_x
 	pey=error_y
 	psx = set_x
 	psy = set_y
 	pogx = ogx
 	pogy = ogy
+	ppcx=pcx
+	ppcy=pcy
 	pcx = center_x
 	pcy = center_y
-	
+	ptargets = targets
+
 	##################################################
-
-
 # NOTE:	YOU ARE NOT ALLOWED TO MAKE ANY CHANGE TO THIS FUNCTION
 #
 # Function Name:	change_setpoint
@@ -351,7 +364,9 @@ def control_logic(center_x,center_y,set_x,set_y):
 #		Outputs:	None
 #		Purpose:	The function updates the value of global "setpoint" list after every 15 seconds of simulation time.
 #					This will be ONLY called by executable file.
+
 def change_setpoint(new_setpoint):
+	print('change_setpoint is called')
 
 	global setpoint
 	setpoint=new_setpoint[:]
