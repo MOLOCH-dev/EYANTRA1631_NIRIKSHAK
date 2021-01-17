@@ -241,16 +241,16 @@ def control_logic(center_x,center_y,set_x,set_y):
 	error_y = set_y - center_y
 	ogy=error_y
 	ang = 60*np.pi/180
-	error_x = pmap(error_x,-1260,1260,-800,800)
-	error_x = pmap(error_x,-1260,1260,-ang,ang)
-	error_y = pmap(error_y,-1260,1260,-800,800)
-	error_y = pmap(error_y,-1260,1260,-ang,ang)
+	error_x = pmap(error_x,-1270,1270,-800,800)
+	error_x = pmap(error_x,-1270,1270,-ang,ang)
+	error_y = pmap(error_y,-1270,1270,-800,800)
+	error_y = pmap(error_y,-1270,1270,-ang,ang)
 
-	Kpx1=3 #3,2.2
+	Kpx1=2.2 #3
 	Kpx2=0 #6.5 #3.23 5x 4-4ex234,9,600.0015
 	Kdx1=0.01 #40.25 ,150,347,500, 0.005, 0.004
 	Kdx2 = 0.0 #0.045 3(1),0.01(2) - good response ,0.010, 0.015
-	Kpy1=3
+	Kpy1=2.2
 	Kpy2=0 #5.5,60,0.0015
 	Kix1=0.0 #5
 	Kix2 = 0.0 #0.05
@@ -267,16 +267,22 @@ def control_logic(center_x,center_y,set_x,set_y):
 	modex = 'auto'
 	modey = 'auto'
 	#	print('not yet')
+	ptermx = Kpx1*error_x
+	ptermy = Kpy1*error_y
 	if psx!=None:
 		if psx!=set_x:
 			print('yup')
 			#dinputx =  -(set_x - psx - dinputx)
+			ptermx = ptermx - Kpx1*(error_x-pex)
 			print(dinputx,'psx')
+			print(ptermx,'ptermx')
 
 		if psy!=set_y:
 			print('yup2')
 			#dinputy = -(set_y - psy - dinputy)
+			ptermy = ptermy - Kpy1*(error_y-pey)
 			print(dinputy,'psy')
+			print(ptermy,'ptermy')
 
 	
 
@@ -291,8 +297,8 @@ def control_logic(center_x,center_y,set_x,set_y):
 		PIDy = Kpy1*error_y*0.1
 		s=s+1
 	elif pogx is not None:
-		PIDx = Kpx1*error_x - Kdx1*(dinputx) +Kix1*(errxsum)
-		PIDy = Kpy1*error_y - Kdy1*(dinputy)+Kiy1*(errysum)
+		PIDx = ptermx - Kdx1*(dinputx) +Kix1*(errxsum)
+		PIDy = ptermy - Kdy1*(dinputy)+Kiy1*(errysum)
 
 
 
