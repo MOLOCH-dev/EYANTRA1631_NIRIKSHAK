@@ -128,10 +128,11 @@ def controlx(targets):
 
 	#returnarray = [-1,-1,-1,-1]
 
-	_=sim.simxSetJointTargetPosition(client_id,handle_arr[1],targets[0],sim.simx_opmode_oneshot)
+	_=sim.simxSetJointTargetPosition(client_id,handle_arr[0],targets[0],sim.simx_opmode_oneshot)
 
+	_=sim.simxSetJointTargetPosition(client_id,handle_arr[2],targets[1],sim.simx_opmode_oneshot)
 
-	_=sim.simxSetJointTargetPosition(client_id,handle_arr[3],targets[1],sim.simx_opmode_oneshot)
+	_=sim.simxSetJointTargetPosition(client_id,handle_arr[3],targets[2],sim.simx_opmode_oneshot)
 
 
 def controly(targets):
@@ -140,8 +141,9 @@ def controly(targets):
 	#returnarray = [-1,-1,-1,-1]
 	_=sim.simxSetJointTargetPosition(client_id,handle_arr[0],targets[0],sim.simx_opmode_oneshot)
 
+	_=sim.simxSetJointTargetPosition(client_id,handle_arr[1],targets[1],sim.simx_opmode_oneshot)
 
-	_=sim.simxSetJointTargetPosition(client_id,handle_arr[2],targets[1],sim.simx_opmode_oneshot)
+	_=sim.simxSetJointTargetPosition(client_id,handle_arr[3],targets[2],sim.simx_opmode_oneshot)
 
 
 
@@ -191,7 +193,7 @@ def init_setup(rec_client_id):
 	##################################################
 
 
-def control_logic(center_x,center_y,set_x,set_y,time):
+def control_logic(center_x,center_y,set_x,set_y,nsx,nsy,end):
 	"""
 	Purpose:
 	---
@@ -237,94 +239,100 @@ def control_logic(center_x,center_y,set_x,set_y,time):
 
 
 	error_x = set_x - center_x
-	ogx=error_x
 	error_y = set_y - center_y
-	ogy=error_y
-	ang = 60*np.pi/180
-	error_x = pmap(error_x,-1270,1270,-800,800)
-	error_x = pmap(error_x,-1270,1270,-ang,ang)
-	error_y = pmap(error_y,-1270,1270,-800,800)
-	error_y = pmap(error_y,-1270,1270,-ang,ang)
+	error_x = pmap(error_x,-640,640,-center_x-100,center_x+100) if end == True else pmap(error_x,-640,640,-center_x-nsx,center_x+nsx)
+	error_y = pmap(error_y,-640,640,-center_y-100,center_y+100) if end == True else pmap(error_y,-640,640,-center_y-nsy,center_y+nsy)
+	error_x = error_x/640
+	error_y = error_y/640
 
-	Kpx1=2.8 #3
-	Kpx2=2.8 #6.5 #3.23 5x 4-4ex234,9,600.0015
-	Kdx1=0.011 #40.25 ,150,347,500, 0.005, 0.004
-	Kdx2 = 0.011 #0.045 3(1),0.01(2) - good response ,0.010, 0.015
-	Kpy1=2.8
-	Kpy2=2.8 #5.5,60,0.0015
-	Kix1=0.02 #5
-	Kix2 = 0.02 #0.05
-	Kdy1=0.011
-	Kdy2 = 0.011 #30 x35,55-4,347
-	Kiy1 =0.02
-	Kiy2 = 0.02
-
-	errxsum = errxsum+(Kix2*error_x)
-	errysum=errysum+(Kiy2*error_y)
-
-	dinputx = center_x-pcx
-	dinputy = center_y-pcy
+	print(error_x,error_y,"box")
+	Kpx1=3 #3
+	Kpx2=5 #6.5 #3.23 5x 4-4ex234,9,600.0015
+	Kdx1=3 #40.25 ,150,347,500, 0.005, 0.004,0.006
+	Kdx2 = 3 #0.045 3(1),0.01(2) - good response ,0.010, 0.015
+	Kpy1=3
+	Kpy2=5 #5.5,60,0.0015
+	Kix1=0.0 #5
+	Kix2 = 0.0 #0.05
+	Kdy1=2
+	Kdy2 = 2 #30 x35,55-4,347
+	Kiy1 =0.0
+	Kiy2 = 0.0
+	dinputx = pex - error_x
+	dinputy = pey - error_y
+	print(dinputx,dinputy,'d')
 	modex = 'auto'
 	modey = 'auto'
 	#	print('not yet')
 	ptermx = Kpx1*error_x
 	ptermy = Kpy1*error_y
+	ptermx2 = Kpx2*error_x
+	ptermy2 = Kpy2*error_y
+	print(ptermx,'ptermx')
 	if psx!=None:
 		if psx!=set_x:
-			print('yup')
+			##print('yup')
 			#dinputx =  -(set_x - psx - dinputx)
-			ptermx = ptermx - Kpx1*(error_x-pex)
-			print(dinputx,'psx')
-			print(ptermx,'ptermx')
+			#ptermx = ptermx - Kpx1*(error_x-pex)
+			#ptermy = ptermy - Kpy1*(error_y-pey)
+			
+			if psy==set_y:
+				Kdx1 = Kdx1/10
+				Kdx2 = Kdx2/10
+			
 
 		if psy!=set_y:
-			print('yup2')
+			#print('yup2')
 			#dinputy = -(set_y - psy - dinputy)
-			ptermy = ptermy - Kpy1*(error_y-pey)
-			print(dinputy,'psy')
-			print(ptermy,'ptermy')
-
+			#ptermx = ptermx - Kpx1*(error_x-pex)
+			#ptermy = ptermy - Kpy1*(error_y-pey)
+			#print(dinputy,'psy')
+			#print(ptermy,'ptermy')
+			if psx==set_x:
+				Kdy1 = Kdy1/10
+				Kdy2 = Kdy2/10
+		if 	psx!=set_x and psy!=set_y:
+			Kdx1 = Kdx1/10
+			Kdx2 = Kdx2/10
+			Kdy1 = Kdy1/10
+			Kdy2 = Kdy2/10
 	
 
-	if pogx is None:
-		PIDx = Kpx1*error_x*0.1
+	
+	#elif pogx is not None:
+	PIDx = ptermx - Kdx1*(dinputx) +Kix1*(errxsum)
+	PIDy = ptermy - Kdy1*(dinputy)+Kiy1*(errysum)
+	PIDx2 = ptermx2 - Kdx2*(dinputx) +Kix2*(errxsum)
+	PIDy2 = ptermy2 - Kdy2*(dinputy)+Kiy2*(errysum)
 
-		PIDy = Kpy1*error_y*0.1
-		s=s+1
-	if s<5:
-		PIDx = Kpx1*error_x*0.1
-
-		PIDy = Kpy1*error_y*0.1
-		s=s+1
-	elif pogx is not None:
-		PIDx = ptermx - Kdx1*(dinputx) +Kix1*(errxsum)
-		PIDy = ptermy - Kdy1*(dinputy)+Kiy1*(errysum)
-
-	print('i',Kix1*(errxsum),Kiy1*(errysum))
 
 	
 	PIDx = constrain(PIDx)
 	PIDy=constrain(PIDy)
+	PIDx2 = constrain(PIDx2)
+	PIDy2=constrain(PIDy2)
 	
-
-	if np.abs([PIDx])>np.abs([PIDy]):
-		targets = [PIDx,-PIDx,-PIDx,PIDx]
-		print('x')
+	#targets = [0,PIDy2,PIDx2,0]
+	#targets = [PIDx,0,0,PIDx]
+	
+	if np.abs([error_x])>np.abs([error_y]):
+		targets = [PIDx,PIDy2,PIDx2,PIDx]
+		#print('x')
+		control_servo(targets)
 	else:
-		targets = [PIDy,PIDy,-PIDy,-PIDy]
-		print('y')
-
+		targets = [PIDy,PIDy2,PIDx2,-PIDy]
+		control_servo(targets)
+		#print('y')
 	
 	
-
 	if psx!=None:
 		if psx!=set_x:
-			print('yup')
+			#print('yup')
 			modex = 'auto'
 
 
 		if psy!=set_y:
-			print('yup2')
+			#print('yup2')
 			modey = 'auto'
 
 	if modex!='manual' and modey!='manual':
@@ -335,16 +343,17 @@ def control_logic(center_x,center_y,set_x,set_y,time):
 	elif modey!='manual' and modex=='manual':
 		targets = [PIDy1,-PIDy2]
 		controly(targets)
-	print(modex,modey)
+	#print(modex,modey)
 	print(targets)
 	pex=error_x
 	pey=error_y
 	psx = set_x
 	psy = set_y
-	pogx = ogx
-	pogy = ogy
 	pcx = center_x
 	pcy = center_y
+
+
+
 	
 	##################################################
 
