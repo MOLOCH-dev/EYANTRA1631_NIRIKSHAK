@@ -1,7 +1,7 @@
 # Nirikshak Bot (NB)
 <b>Learning Modules include Image Processing, Control Systems, 3D Designing, Algorithm Building, Robotic Simulation, Python programming and Lua programming</b>
 
-![](![image](https://user-images.githubusercontent.com/66636289/113771336-db6d3300-9740-11eb-8ab7-91195804cb0b.png)
+![image](https://user-images.githubusercontent.com/66636289/113771336-db6d3300-9740-11eb-8ab7-91195804cb0b.png)
 
 Quality Assurance has always been an integral part of any Industry. We are in the Industry 4.0 era and Quality Assurance is of paramount importance. Since mass manufacturing has been a key focus of many industries to meet the demands of a growing population, QA benefits both the company and the customer.
 
