@@ -16,24 +16,24 @@ Challenges in this theme include <b>Image Processing, Control Systems, 3D Design
 The critical factor is time and the challenge is to complete the given tasks in the shortest possible time whilst incurring least penalties. The teams that perform the task best in accordance with the rules will be declared the WINNER of the competition.
 
 
-# <a href="https://github.com/18harsh/Nirikshak-Bot-NB--eyantra/tree/main/task0">Task 0</a> (9th Oct, 2020 to 19th Oct, 2020)<br>
+# <a href="">Task 0</a> (9th Oct, 2020 to 19th Oct, 2020)<br>
 (1) Software Installation (Windows)<br>
 (2) Test Setup<br>
 (3) Learning Resources / Tutorials<br>
 (4) Solving Assignment: <b>Python</b> and <b>Lua</b><br>
 
-# <a href="https://github.com/18harsh/Nirikshak-Bot-NB--eyantra/tree/main/task1">Task 1</a> (20th Oct, 2020 to 2nd Nov, 2020)<br>
+# <a href="">Task 1</a> (20th Oct, 2020 to 2nd Nov, 2020)<br>
 <b>CoppeliaSim</b> Tutorials<br>
 1A - Explore <b>OpenCV</b><br>
 1B - <b>Detect and Encode Maze</b><br>
 1C - <b>Design Ball Balance Platform</b><br>
 
-# <a href="https://github.com/18harsh/Nirikshak-Bot-NB--eyantra/tree/main/task2">Task 2</a> (5th Nov, 2020 to 23th Nov, 2020)<br>
+# <a href="">Task 2</a> (5th Nov, 2020 to 23th Nov, 2020)<br>
 2A - <b>Develop Ball Tracking Algorithm</b><br>
 2B - <b>Generate Maze in CoppeliaSim with Remote API<b>
   
   
-# <a href="https://github.com/18harsh/Nirikshak-Bot-NB--eyantra/tree/main/task3">Task 3</a> (27th Nov, 2020 to 23th dec, 2020)<br>
+# <a href="">Task 3</a> (27th Nov, 2020 to 23th dec, 2020)<br>
 Understanding Proportional Integral Derivative (PID) Controller<br>
 Balance ball on platform
 
